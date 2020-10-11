@@ -288,3 +288,29 @@ exports.listSearch = (req, res) => {
 
     }
 }
+
+
+//decrease available quantity of products and increase sold items
+exports.decreaseQuantity = (req, res, next) => {
+    //store in variable the items options to update, get items from request and for each one update the quantity
+    let bulkOps = req.body.order.products.map((item) => {
+        return {
+            updateOne: {
+                filter: {_id: item._id},
+                update: {$inc: {quantity: -item.count, sold: +item.count}}
+            }
+        }
+    });
+
+
+    //run the update
+    Product.bulkWrite(bulkOps, {}, (error, products) => {
+        if(error){
+            return res.status(400).json({
+                error: 'Could not update product'
+            });
+        }
+        next();
+    } )
+
+}
