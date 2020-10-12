@@ -1,3 +1,5 @@
+const { errorHandler } = require('../helpers/dbErrorHandler');
+const { Order } = require('../models/order');
 const User = require('../models/user');
 
 //middleware to find user by id
@@ -70,5 +72,20 @@ exports.addOrderToUserHistory = (req, res, next) => {
                 });
             }
             next();
+        })
+}
+
+//return user purchase history
+exports.purchaseHistory = (req, res) => {
+    Order.find({user: req.profile._id})
+        .populate('user',"_id name") //populate with user data
+        .sort('-created') //sort by date
+        .exec((err, orders) => {
+            if(err){
+                return res.status(400).json({
+                    error: errorHandler(err)
+                })
+            }
+            res.json(orders);
         })
 }
